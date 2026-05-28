@@ -118,25 +118,25 @@ export function LyricBuilder() {
   return (
     <div className="safe-pb mx-auto w-full max-w-2xl space-y-8 px-4 py-8 sm:space-y-10 sm:px-6 sm:py-12">
       <header className="text-center">
-        <div className="mb-3 text-4xl" aria-hidden>
-          🚗💨
+        <div className="mb-3 text-4xl drop-shadow-sm" aria-hidden>
+          💩💨
         </div>
-        <h1 className="text-balance text-2xl font-bold tracking-tight text-white sm:text-4xl">
+        <h1 className="text-balance text-2xl font-bold tracking-tight text-cream sm:text-4xl">
           Diarrhea.
         </h1>
-        <p className="mt-2 text-sm text-slate-400 sm:text-base">
+        <p className="mt-2 text-sm text-steam sm:text-base">
           Fill in the blanks. Submit your rhyme.
         </p>
       </header>
 
-      <section className="rounded-2xl bg-road-900/90 p-4 ring-1 ring-slate-800 sm:p-8">
-        <p className="text-balance text-center text-base leading-relaxed text-white sm:text-xl">
+      <section className="poop-card p-4 sm:p-8">
+        <p className="text-balance text-center text-base leading-relaxed text-cream sm:text-xl">
           When you&apos;re driving in your{" "}
-          <span className="break-words font-semibold text-signal-amber">
+          <span className="break-words font-semibold text-caramel">
             {vehicle.trim() || "___"}
           </span>{" "}
           and you{" "}
-          <span className="break-words font-semibold text-signal-amber">
+          <span className="break-words font-semibold text-caramel">
             {feeling.trim() || "___"}
           </span>
           , diarrhea, <span aria-label="fart">💨💨</span>, diarrhea.
@@ -145,7 +145,7 @@ export function LyricBuilder() {
 
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
         <div>
-          <label htmlFor="name" className="mb-2 block text-sm font-medium text-slate-300">
+          <label htmlFor="name" className="mb-2 block text-sm font-medium text-cream/90">
             Your name:
           </label>
           <input
@@ -162,7 +162,7 @@ export function LyricBuilder() {
         </div>
 
         <div>
-          <label htmlFor="vehicle" className="mb-2 block text-sm font-medium text-slate-300">
+          <label htmlFor="vehicle" className="mb-2 block text-sm font-medium text-cream/90">
             Your ride:
           </label>
           <input
@@ -178,7 +178,7 @@ export function LyricBuilder() {
         </div>
 
         <div>
-          <label htmlFor="feeling" className="mb-2 block text-sm font-medium text-slate-300">
+          <label htmlFor="feeling" className="mb-2 block text-sm font-medium text-cream/90">
             What happens:
           </label>
           <input
@@ -198,27 +198,30 @@ export function LyricBuilder() {
         </button>
 
         {success && (
-          <p className="text-center text-sm text-signal-green">Added to the wall!</p>
+          <p className="text-center text-sm font-medium text-signal-green">Added to the wall!</p>
         )}
       </form>
 
       <section>
-        <h2 className="mb-4 text-center text-lg font-semibold text-white">
+        <h2 className="mb-4 text-center text-lg font-semibold text-cream">
           Submitted rhymes
         </h2>
         {loading ? (
-          <p className="text-center text-sm text-slate-500">Loading...</p>
+          <p className="text-center text-sm text-steam">Loading...</p>
         ) : submissions.length === 0 ? (
-          <p className="text-center text-sm text-slate-500">Be the first to submit!</p>
+          <p className="text-center text-sm text-steam">Be the first to submit!</p>
         ) : (
           <div className="space-y-6 sm:space-y-8">
             {groups.map((group) => (
               <div key={group.manufacturerId}>
-                <h3 className="mb-1 text-lg font-semibold text-signal-amber">
+                <h3 className="mb-1 flex items-center gap-2 text-lg font-semibold text-caramel">
+                  <span className="text-base opacity-80" aria-hidden>
+                    💩
+                  </span>
                   {group.manufacturerName}
                 </h3>
                 {group.hasVotedToday && (
-                  <p className="mb-3 text-xs leading-relaxed text-slate-500">
+                  <p className="mb-3 text-xs leading-relaxed text-steam">
                     You voted for this ride today. Try again tomorrow.
                   </p>
                 )}
@@ -230,14 +233,14 @@ export function LyricBuilder() {
                     return (
                       <li
                         key={s.id}
-                        className="flex flex-col gap-3 rounded-xl bg-road-900/80 p-4 ring-1 ring-slate-800 sm:flex-row sm:items-start"
+                        className="poop-card-inset flex flex-col gap-3 p-4 sm:flex-row sm:items-start"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-signal-amber">{s.submitterName}</p>
-                          <p className="mt-1 break-words text-sm leading-relaxed text-slate-200">
+                          <p className="text-sm font-medium text-caramel">{s.submitterName}</p>
+                          <p className="mt-1 break-words text-sm leading-relaxed text-cream/90">
                             {s.text}
                           </p>
-                          <p className="mt-2 text-xs text-slate-500">
+                          <p className="mt-2 text-xs text-steam">
                             {s.voteCount} {s.voteCount === 1 ? "vote" : "votes"}
                           </p>
                         </div>

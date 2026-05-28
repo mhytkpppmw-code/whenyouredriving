@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { parseJsonResponse } from "@/lib/api-client";
 import { formatLyric, type Submission } from "@/lib/lyric";
 
 export function LyricBuilder() {
@@ -15,11 +16,18 @@ export function LyricBuilder() {
   const loadSubmissions = useCallback(async () => {
     try {
       const res = await fetch("/api/submissions");
-      if (!res.ok) throw new Error("Failed to load");
-      const data = (await res.json()) as { submissions: Submission[] };
-      setSubmissions(data.submissions);
-    } catch {
-      setError("Could not load submissions.");
+      const data = await parseJsonResponse<{ submissions: Submission[] }>(res);
+      if (!res.ok) {
+        throw new Error(
+          (data as { error?: string }).error ?? "Failed to load submissions"
+        );
+      }
+      setSubmissions(data.submissions ?? []);
+      setError(null);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not load submissions."
+      );
     } finally {
       setLoading(false);
     }
@@ -45,10 +53,10 @@ export function LyricBuilder() {
         }),
       });
 
-      const data = (await res.json()) as {
+      const data = await parseJsonResponse<{
         submission?: Submission;
         error?: string;
-      };
+      }>(res);
 
       if (!res.ok) {
         throw new Error(data.error ?? "Could not submit");
@@ -58,6 +66,8 @@ export function LyricBuilder() {
         setSubmissions((prev) => [data.submission!, ...prev]);
       }
       setSuccess(true);
+      setVehicle("");
+      setFeeling("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not submit");
     } finally {
@@ -68,8 +78,11 @@ export function LyricBuilder() {
   return (
     <div className="mx-auto w-full max-w-2xl space-y-10 px-6 py-12">
       <header className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-          When You&apos;re Driving
+        <p className="text-4xl" aria-hidden>
+          🚗💨
+        </p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          Diarrhea.
         </h1>
         <p className="mt-2 text-slate-400">Fill in the blanks. Submit your variation.</p>
       </header>
@@ -120,6 +133,9 @@ export function LyricBuilder() {
       </form>
 
       <section>
+        <h2 className="mb-4 text-center text-lg font-semibold text-white">
+          Community variations
+        </h2>
         {loading ? (
           <p className="text-center text-sm text-slate-500">Loading...</p>
         ) : submissions.length === 0 ? (

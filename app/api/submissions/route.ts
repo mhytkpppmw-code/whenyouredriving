@@ -3,6 +3,7 @@ import { sanitizeInput } from "@/lib/lyric";
 import { addSubmission, readSubmissions } from "@/lib/submissions";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {

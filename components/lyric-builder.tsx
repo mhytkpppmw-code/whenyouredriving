@@ -116,25 +116,31 @@ export function LyricBuilder() {
   const groups = groupSubmissionsByManufacturer(submissions, votedManufacturerIds);
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-10 px-6 py-12">
+    <div className="safe-pb mx-auto w-full max-w-2xl space-y-8 px-4 py-8 sm:space-y-10 sm:px-6 sm:py-12">
       <header className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+        <h1 className="text-balance text-2xl font-bold tracking-tight text-white sm:text-4xl">
           When You&apos;re Driving
         </h1>
-        <p className="mt-2 text-slate-400">Fill in the blanks. Submit your variation.</p>
+        <p className="mt-2 text-sm text-slate-400 sm:text-base">
+          Fill in the blanks. Submit your variation.
+        </p>
       </header>
 
-      <section className="rounded-2xl bg-road-900/90 p-6 ring-1 ring-slate-800 sm:p-8">
-        <p className="text-center text-lg leading-relaxed text-white sm:text-xl">
+      <section className="rounded-2xl bg-road-900/90 p-4 ring-1 ring-slate-800 sm:p-8">
+        <p className="text-balance text-center text-base leading-relaxed text-white sm:text-xl">
           When you&apos;re driving in your{" "}
-          <span className="font-semibold text-signal-amber">{vehicle.trim() || "___"}</span>{" "}
+          <span className="break-words font-semibold text-signal-amber">
+            {vehicle.trim() || "___"}
+          </span>{" "}
           and you{" "}
-          <span className="font-semibold text-signal-amber">{feeling.trim() || "___"}</span>,
-          diarrhea, <span aria-label="fart">💨💨</span>, diarrhea.
+          <span className="break-words font-semibold text-signal-amber">
+            {feeling.trim() || "___"}
+          </span>
+          , diarrhea, <span aria-label="fart">💨💨</span>, diarrhea.
         </p>
       </section>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
         <div>
           <label htmlFor="name" className="mb-2 block text-sm font-medium text-slate-300">
             Your name
@@ -147,7 +153,8 @@ export function LyricBuilder() {
             maxLength={60}
             required
             autoComplete="name"
-            className="w-full rounded-xl border border-slate-700 bg-road-950 px-4 py-3 text-white placeholder:text-slate-600 focus:border-signal-amber focus:outline-none focus:ring-2 focus:ring-signal-amber/30"
+            enterKeyHint="next"
+            className="field-input"
           />
         </div>
 
@@ -162,7 +169,8 @@ export function LyricBuilder() {
             placeholder="Chevy"
             maxLength={80}
             required
-            className="w-full rounded-xl border border-slate-700 bg-road-950 px-4 py-3 text-white placeholder:text-slate-600 focus:border-signal-amber focus:outline-none focus:ring-2 focus:ring-signal-amber/30"
+            enterKeyHint="next"
+            className="field-input"
           />
         </div>
 
@@ -177,15 +185,12 @@ export function LyricBuilder() {
             placeholder="feel something heavy"
             maxLength={80}
             required
-            className="w-full rounded-xl border border-slate-700 bg-road-950 px-4 py-3 text-white placeholder:text-slate-600 focus:border-signal-amber focus:outline-none focus:ring-2 focus:ring-signal-amber/30"
+            enterKeyHint="done"
+            className="field-input"
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-xl bg-signal-amber py-3 text-sm font-bold text-road-950 transition hover:bg-amber-400 disabled:opacity-50"
-        >
+        <button type="submit" disabled={submitting} className="btn-primary">
           {submitting ? "Submitting..." : "Submit variation"}
         </button>
 
@@ -203,20 +208,21 @@ export function LyricBuilder() {
         ) : submissions.length === 0 ? (
           <p className="text-center text-sm text-slate-500">Be the first to submit!</p>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {groups.map((group) => (
               <div key={group.manufacturerId}>
                 <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-500">
+                  Car manufacturer
                 </p>
                 <h3 className="mb-1 text-lg font-semibold text-signal-amber">
                   {group.manufacturerName}
                 </h3>
                 {group.hasVotedToday && (
-                  <p className="mb-3 text-xs text-slate-500">
+                  <p className="mb-3 text-xs leading-relaxed text-slate-500">
                     You voted for this manufacturer today. Try again tomorrow.
                   </p>
                 )}
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {group.submissions.map((s) => {
                     const votedForManufacturer = votedManufacturerIds.has(s.manufacturerId);
                     const isVoting = votingId === s.id;
@@ -224,11 +230,13 @@ export function LyricBuilder() {
                     return (
                       <li
                         key={s.id}
-                        className="flex items-start gap-3 rounded-xl bg-road-900/80 px-4 py-3 ring-1 ring-slate-800"
+                        className="flex flex-col gap-3 rounded-xl bg-road-900/80 p-4 ring-1 ring-slate-800 sm:flex-row sm:items-start"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium text-signal-amber">{s.submitterName}</p>
-                          <p className="mt-1 text-sm leading-relaxed text-slate-200">{s.text}</p>
+                          <p className="text-sm font-medium text-signal-amber">{s.submitterName}</p>
+                          <p className="mt-1 break-words text-sm leading-relaxed text-slate-200">
+                            {s.text}
+                          </p>
                           <p className="mt-2 text-xs text-slate-500">
                             {s.voteCount} {s.voteCount === 1 ? "vote" : "votes"}
                           </p>
@@ -237,7 +245,7 @@ export function LyricBuilder() {
                           type="button"
                           onClick={() => handleVote(s)}
                           disabled={votedForManufacturer || isVoting}
-                          className="shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-signal-amber/40 disabled:cursor-not-allowed disabled:opacity-50 bg-road-800 text-signal-amber hover:bg-road-800/80 disabled:hover:bg-road-800"
+                          className="btn-vote w-full sm:w-auto"
                           aria-label={
                             votedForManufacturer
                               ? `Already voted for ${group.manufacturerName} today`
@@ -256,7 +264,14 @@ export function LyricBuilder() {
         )}
       </section>
 
-      {error && <p className="text-center text-sm text-red-400">{error}</p>}
+      {error && (
+        <p
+          className="rounded-lg bg-red-950/50 px-3 py-2 text-center text-sm leading-relaxed text-red-400 ring-1 ring-red-900/50"
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
     </div>
   );
 }

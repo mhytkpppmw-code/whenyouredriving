@@ -13,12 +13,6 @@ const SEED_ROWS = [
     feeling: "feel something heavy",
     createdAt: "2026-01-01T00:00:00.000Z",
   },
-  {
-    submitterName: "Jordan",
-    vehicle: "Honda",
-    feeling: "feel a rumble in your tummy",
-    createdAt: "2026-01-02T00:00:00.000Z",
-  },
 ];
 
 async function ensureSeeds(): Promise<void> {

@@ -125,7 +125,7 @@ export function LyricBuilder() {
           Diarrhea.
         </h1>
         <p className="mt-2 text-sm text-slate-400 sm:text-base">
-          Fill in the blanks. Submit your variation.
+          Fill in the blanks. Submit your rhyme.
         </p>
       </header>
 
@@ -146,7 +146,7 @@ export function LyricBuilder() {
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
         <div>
           <label htmlFor="name" className="mb-2 block text-sm font-medium text-slate-300">
-            Your name
+            Your name:
           </label>
           <input
             id="name"
@@ -163,7 +163,7 @@ export function LyricBuilder() {
 
         <div>
           <label htmlFor="vehicle" className="mb-2 block text-sm font-medium text-slate-300">
-            Car manufacturer
+            Your ride:
           </label>
           <input
             id="vehicle"
@@ -179,7 +179,7 @@ export function LyricBuilder() {
 
         <div>
           <label htmlFor="feeling" className="mb-2 block text-sm font-medium text-slate-300">
-            What happens (rhyme line)
+            What happens:
           </label>
           <input
             id="feeling"
@@ -194,7 +194,7 @@ export function LyricBuilder() {
         </div>
 
         <button type="submit" disabled={submitting} className="btn-primary">
-          {submitting ? "Submitting..." : "Submit variation"}
+          {submitting ? "Submitting..." : "Submit rhyme"}
         </button>
 
         {success && (
@@ -204,7 +204,7 @@ export function LyricBuilder() {
 
       <section>
         <h2 className="mb-4 text-center text-lg font-semibold text-white">
-          Community variations
+          Submitted rhymes
         </h2>
         {loading ? (
           <p className="text-center text-sm text-slate-500">Loading...</p>
@@ -214,15 +214,12 @@ export function LyricBuilder() {
           <div className="space-y-6 sm:space-y-8">
             {groups.map((group) => (
               <div key={group.manufacturerId}>
-                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Car manufacturer
-                </p>
                 <h3 className="mb-1 text-lg font-semibold text-signal-amber">
                   {group.manufacturerName}
                 </h3>
                 {group.hasVotedToday && (
                   <p className="mb-3 text-xs leading-relaxed text-slate-500">
-                    You voted for this manufacturer today. Try again tomorrow.
+                    You voted for this ride today. Try again tomorrow.
                   </p>
                 )}
                 <ul className="space-y-3">
@@ -251,7 +248,7 @@ export function LyricBuilder() {
                           className="btn-vote w-full sm:w-auto"
                           aria-label={
                             votedForManufacturer
-                              ? `Already voted for ${group.manufacturerName} today`
+                              ? `Already voted for ${group.manufacturerName} ride today`
                               : `Vote for this ${group.manufacturerName} rhyme`
                           }
                         >

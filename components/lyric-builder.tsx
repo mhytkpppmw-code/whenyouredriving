@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { voterHeaders } from "@/lib/client-voter";
-import { formatLyric, groupSubmissionsByManufacturer } from "@/lib/lyric";
+import { groupSubmissionsByManufacturer } from "@/lib/lyric";
 import type { SubmissionPublic } from "@/lib/types";
 
 export function LyricBuilder() {
@@ -17,27 +17,38 @@ export function LyricBuilder() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const loadSubmissions = useCallback(async () => {
-    try {
-      const res = await fetch("/api/submissions", { headers: voterHeaders() });
-      if (!res.ok) throw new Error("Failed to load");
-      const data = (await res.json()) as {
-        submissions: SubmissionPublic[];
-        votedManufacturerIds: string[];
-      };
-      setSubmissions(data.submissions);
-      setVotedManufacturerIds(new Set(data.votedManufacturerIds));
-      setError(null);
-    } catch {
-      setError("Could not load submissions.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
+    let ignore = false;
+
+    async function loadSubmissions() {
+      try {
+        const res = await fetch("/api/submissions", { headers: voterHeaders() });
+        if (!res.ok) throw new Error("Failed to load");
+        const data = (await res.json()) as {
+          submissions: SubmissionPublic[];
+          votedManufacturerIds: string[];
+        };
+        if (ignore) return;
+        setSubmissions(data.submissions);
+        setVotedManufacturerIds(new Set(data.votedManufacturerIds));
+        setError(null);
+      } catch {
+        if (!ignore) {
+          setError("Could not load submissions.");
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    }
+
     loadSubmissions();
-  }, [loadSubmissions]);
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -118,7 +129,7 @@ export function LyricBuilder() {
   return (
     <div className="safe-pb mx-auto w-full max-w-2xl space-y-8 px-4 py-8 sm:space-y-10 sm:px-6 sm:py-12">
       <header className="text-center">
-        <div className="mb-3 text-4xl drop-shadow-sm" aria-hidden>
+        <div className="mb-3 text-4xl drop-shadow-xs" aria-hidden>
           🚗💨
         </div>
         <h1 className="text-balance text-2xl font-bold tracking-tight text-cream sm:text-4xl">
@@ -132,11 +143,11 @@ export function LyricBuilder() {
       <section className="poop-card p-4 sm:p-8">
         <p className="text-balance text-center text-base leading-relaxed text-cream sm:text-xl">
           When you&apos;re driving in your{" "}
-          <span className="break-words font-semibold text-caramel">
+          <span className="wrap-break-word font-semibold text-caramel">
             {vehicle.trim() || "___"}
           </span>{" "}
           and you{" "}
-          <span className="break-words font-semibold text-caramel">
+          <span className="wrap-break-word font-semibold text-caramel">
             {feeling.trim() || "___"}
           </span>
           , diarrhea, <span aria-label="fart">💨💨</span>, diarrhea.
@@ -237,7 +248,7 @@ export function LyricBuilder() {
                       >
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-caramel">{s.submitterName}</p>
-                          <p className="mt-1 break-words text-sm leading-relaxed text-cream/90">
+                          <p className="mt-1 wrap-break-word text-sm leading-relaxed text-cream/90">
                             {s.text}
                           </p>
                           <p className="mt-2 text-xs text-steam">

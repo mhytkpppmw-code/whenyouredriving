@@ -4,9 +4,23 @@
       "id": "5bdc12d3-6756-4474-b122-4391fd9e5ba5",
       "name": "Chevy",
       "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "84debca1-388b-4ac1-98c2-a8ee58453041",
+      "name": "hyundai",
+      "createdAt": "2026-05-28T20:35:26.067Z"
     }
   ],
   "submissions": [
+    {
+      "id": "2d5c92af-2cc4-4d1a-8dfc-e65cf7b124e2",
+      "manufacturerId": "84debca1-388b-4ac1-98c2-a8ee58453041",
+      "text": "When you're driving in your hyundai and you chocolate sundae, diarrhea, 💨💨, diarrhea.",
+      "submitterName": "Austin",
+      "voteCount": 1,
+      "createdAt": "2026-05-28T20:35:26.068Z",
+      "createdByVoterId": "cde232ab-1764-4aae-869a-3742f1cc8fc1"
+    },
     {
       "id": "96434447-9896-433e-9982-9b1afc3073a4",
       "manufacturerId": "5bdc12d3-6756-4474-b122-4391fd9e5ba5",
@@ -23,6 +37,14 @@
       "voterId": "054014fc-79f0-4711-aa94-ba4828baea3d",
       "voteDate": "2026-05-28",
       "createdAt": "2026-05-28T20:01:11.395Z"
+    },
+    {
+      "id": "9efa841f-11b3-4b99-bde7-f01c2919edef",
+      "submissionId": "2d5c92af-2cc4-4d1a-8dfc-e65cf7b124e2",
+      "manufacturerId": "84debca1-388b-4ac1-98c2-a8ee58453041",
+      "voterId": "cde232ab-1764-4aae-869a-3742f1cc8fc1",
+      "voteDate": "2026-05-28",
+      "createdAt": "2026-05-28T20:35:53.243Z"
     }
   ]
 }

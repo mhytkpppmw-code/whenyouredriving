@@ -13,7 +13,7 @@ export default function Home() {
       </main>
 
       <footer className="safe-pb relative z-10 border-t border-slate-800/80 px-4 py-6 text-center text-xs text-slate-500">
-        Austin and Lukas are c00l.
+        From the makers of Cat Mash.
       </footer>
     </div>
   );

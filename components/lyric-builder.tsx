@@ -118,8 +118,11 @@ export function LyricBuilder() {
   return (
     <div className="safe-pb mx-auto w-full max-w-2xl space-y-8 px-4 py-8 sm:space-y-10 sm:px-6 sm:py-12">
       <header className="text-center">
+        <div className="mb-3 text-4xl" aria-hidden>
+          🚗💨
+        </div>
         <h1 className="text-balance text-2xl font-bold tracking-tight text-white sm:text-4xl">
-          When You&apos;re Driving
+          Diarrhea.
         </h1>
         <p className="mt-2 text-sm text-slate-400 sm:text-base">
           Fill in the blanks. Submit your variation.

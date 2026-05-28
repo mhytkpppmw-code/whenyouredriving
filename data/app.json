@@ -1,0 +1,40 @@
+{
+  "manufacturers": [
+    {
+      "id": "5bdc12d3-6756-4474-b122-4391fd9e5ba5",
+      "name": "Chevy",
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "2690ceb4-3f70-4c86-a3c2-cdba10f9fe12",
+      "name": "Honda",
+      "createdAt": "2026-01-02T00:00:00.000Z"
+    }
+  ],
+  "submissions": [
+    {
+      "id": "96434447-9896-433e-9982-9b1afc3073a4",
+      "manufacturerId": "5bdc12d3-6756-4474-b122-4391fd9e5ba5",
+      "text": "When you're driving in your Chevy and you feel something heavy, diarrhea, 💨💨, diarrhea.",
+      "voteCount": 1,
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "8d3be922-6f7e-4119-88ee-448c39233bee",
+      "manufacturerId": "2690ceb4-3f70-4c86-a3c2-cdba10f9fe12",
+      "text": "When you're driving in your Honda and you feel a rumble in your tummy, diarrhea, 💨💨, diarrhea.",
+      "voteCount": 0,
+      "createdAt": "2026-01-02T00:00:00.000Z"
+    }
+  ],
+  "votes": [
+    {
+      "id": "696f54a9-1f7d-43e2-81ff-ab2de5ac9a4a",
+      "submissionId": "96434447-9896-433e-9982-9b1afc3073a4",
+      "manufacturerId": "5bdc12d3-6756-4474-b122-4391fd9e5ba5",
+      "voterId": "054014fc-79f0-4711-aa94-ba4828baea3d",
+      "voteDate": "2026-05-28",
+      "createdAt": "2026-05-28T20:01:11.395Z"
+    }
+  ]
+}

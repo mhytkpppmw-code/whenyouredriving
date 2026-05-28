@@ -4,15 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { formatLyric, type Submission } from "@/lib/lyric";
 
 export function LyricBuilder() {
-  const [vehicle, setVehicle] = useState("Chevy");
-  const [feeling, setFeeling] = useState("feel something heavy");
+  const [vehicle, setVehicle] = useState("");
+  const [feeling, setFeeling] = useState("");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-
-  const preview = formatLyric(vehicle.trim() || "___", feeling.trim() || "___");
 
   const loadSubmissions = useCallback(async () => {
     try {
@@ -76,20 +74,10 @@ export function LyricBuilder() {
         <p className="mt-2 text-slate-400">Fill in the blanks. Submit your variation.</p>
       </header>
 
-      <section className="rounded-2xl bg-zinc-900 p-6 ring-1 ring-zinc-800 sm:p-8">
-        <p className="text-center text-lg leading-relaxed text-white sm:text-xl">
-          When you&apos;re driving in your{" "}
-          <span className="font-semibold text-amber-400">{vehicle.trim() || "___"}</span>{" "}
-          and you{" "}
-          <span className="font-semibold text-amber-400">{feeling.trim() || "___"}</span>,
-          diarrhea, <span aria-label="fart">ðŸ’¨ðŸ’¨</span>, diarrhea.
-        </p>
-      </section>
-
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label htmlFor="vehicle" className="mb-2 block text-sm font-medium text-slate-300">
-            First blank â€” your ride
+            First blank - your ride
           </label>
           <input
             id="vehicle"
@@ -104,7 +92,7 @@ export function LyricBuilder() {
 
         <div>
           <label htmlFor="feeling" className="mb-2 block text-sm font-medium text-slate-300">
-            Second blank â€” what happens
+            Second blank - what happens
           </label>
           <input
             id="feeling"
@@ -122,7 +110,7 @@ export function LyricBuilder() {
           disabled={submitting}
           className="w-full rounded-xl bg-amber-500 py-3 text-sm font-bold text-zinc-950 transition hover:bg-amber-400 disabled:opacity-50"
         >
-          {submitting ? "Submittingâ€¦" : "Submit variation"}
+          {submitting ? "Submitting..." : "Submit variation"}
         </button>
 
         {success && (
@@ -136,7 +124,7 @@ export function LyricBuilder() {
           Community variations
         </h2>
         {loading ? (
-          <p className="text-center text-sm text-slate-500">Loadingâ€¦</p>
+          <p className="text-center text-sm text-slate-500">Loading...</p>
         ) : submissions.length === 0 ? (
           <p className="text-center text-sm text-slate-500">Be the first to submit!</p>
         ) : (
@@ -152,10 +140,6 @@ export function LyricBuilder() {
           </ul>
         )}
       </section>
-
-      <p className="text-center text-xs text-zinc-600">
-        Preview: {preview}
-      </p>
     </div>
   );
 }

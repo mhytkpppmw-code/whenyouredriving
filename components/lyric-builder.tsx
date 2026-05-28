@@ -120,9 +120,6 @@ export function LyricBuilder() {
       </form>
 
       <section>
-        <h2 className="mb-4 text-center text-lg font-semibold text-white">
-          Community variations
-        </h2>
         {loading ? (
           <p className="text-center text-sm text-slate-500">Loading...</p>
         ) : submissions.length === 0 ? (

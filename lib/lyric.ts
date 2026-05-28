@@ -12,7 +12,7 @@ export function sanitizeName(value: string): string {
 }
 
 export function formatLyric(manufacturerName: string, feeling: string): string {
-  return `When you're driving in your ${manufacturerName} and you ${feeling}, diarrhea, 💨💨, diarrhea.`;
+  return `When you're driving in your ${manufacturerName} and ${feeling}, diarrhea, 💨💨, diarrhea.`;
 }
 
 export function groupSubmissionsByManufacturer(

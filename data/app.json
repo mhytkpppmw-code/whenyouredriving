@@ -1,5 +1,30 @@
 {
-  "manufacturers": [],
-  "submissions": [],
-  "votes": []
+  "manufacturers": [
+    {
+      "id": "9c1d0139-45a7-4082-998e-25172296ba40",
+      "name": "Chevy",
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "submissions": [
+    {
+      "id": "bc650231-ddc2-4f87-8051-1f1ac21865c5",
+      "manufacturerId": "9c1d0139-45a7-4082-998e-25172296ba40",
+      "text": "When you're driving in your Chevy and you feel something heavy, diarrhea, 💨💨, diarrhea.",
+      "submitterName": "Alex",
+      "voteCount": 1,
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "votes": [
+    {
+      "id": "c580d85b-89c6-461d-98f6-0c519871ce67",
+      "submissionId": "bc650231-ddc2-4f87-8051-1f1ac21865c5",
+      "manufacturerId": "9c1d0139-45a7-4082-998e-25172296ba40",
+      "voterId": "054014fc-79f0-4711-aa94-ba4828baea3d",
+      "voterName": "Test",
+      "voteDate": "2026-05-28",
+      "createdAt": "2026-05-28T22:01:38.084Z"
+    }
+  ]
 }

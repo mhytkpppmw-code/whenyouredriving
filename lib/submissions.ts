@@ -3,14 +3,14 @@ import { readData, runExclusive, writeData } from "@/lib/db";
 import { getOrCreateManufacturer, findManufacturerById } from "@/lib/manufacturers";
 import { formatLyric, sanitizeInput, sanitizeName } from "@/lib/lyric";
 import type { Submission, SubmissionPublic } from "@/lib/types";
-import { getVotedManufacturerIdsToday, toSubmissionPublic } from "@/lib/voting";
+import { getVotedManufacturerIdsToday, getVoterNames, toSubmissionPublic } from "@/lib/voting";
 import { getVoteDateString } from "@/lib/voter";
 
 const SEED_ROWS = [
   {
     submitterName: "Alex",
     vehicle: "Chevy",
-    feeling: "feel something heavy",
+    feeling: "you feel something heavy",
     createdAt: "2026-01-01T00:00:00.000Z",
   },
 ];
@@ -62,7 +62,7 @@ export async function listSubmissionsPublic(voterId?: string): Promise<{
     .map((s) => {
       const manufacturer = findManufacturerById(data.manufacturers, s.manufacturerId);
       if (!manufacturer) return null;
-      return toSubmissionPublic(s, manufacturer.name);
+      return toSubmissionPublic(s, manufacturer.name, getVoterNames(data.votes, s.id));
     })
     .filter((s): s is SubmissionPublic => s !== null)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

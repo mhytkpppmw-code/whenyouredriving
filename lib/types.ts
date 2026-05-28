@@ -20,6 +20,8 @@ export type Vote = {
   submissionId: string;
   manufacturerId: string;
   voterId: string;
+  /** Display name entered by the voter. Older records may omit. */
+  voterName?: string;
   voteDate: string;
   createdAt: string;
 };
@@ -38,6 +40,8 @@ export type SubmissionPublic = {
   submitterName: string;
   text: string;
   voteCount: number;
+  /** Names of people who voted for this submission. */
+  voters: string[];
   createdAt: string;
 };
 

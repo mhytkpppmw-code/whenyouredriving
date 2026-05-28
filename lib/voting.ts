@@ -1,15 +1,24 @@
 import { randomUUID } from "crypto";
 import { readData, runExclusive, writeData } from "@/lib/db";
 import { findManufacturerById } from "@/lib/manufacturers";
+import { sanitizeName } from "@/lib/lyric";
 import type { Submission, SubmissionPublic, Vote } from "@/lib/types";
 import { getVoteDateString } from "@/lib/voter";
 
 export const ALREADY_VOTED_MESSAGE =
   "You already voted for this manufacturer today. Try again tomorrow.";
 
+export function getVoterNames(votes: Vote[], submissionId: string): string[] {
+  return votes
+    .filter((v) => v.submissionId === submissionId)
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    .map((v) => v.voterName?.trim() || "Anonymous");
+}
+
 export function toSubmissionPublic(
   submission: Submission,
-  manufacturerName: string
+  manufacturerName: string,
+  voters: string[] = []
 ): SubmissionPublic {
   return {
     id: submission.id,
@@ -18,6 +27,7 @@ export function toSubmissionPublic(
     submitterName: submission.submitterName?.trim() || "Anonymous",
     text: submission.text,
     voteCount: submission.voteCount,
+    voters,
     createdAt: submission.createdAt,
   };
 }
@@ -36,9 +46,14 @@ export function getVotedManufacturerIdsToday(
 
 export async function castVote(
   submissionId: string,
-  voterId: string
+  voterId: string,
+  voterName: string
 ): Promise<{ submission: SubmissionPublic; vote: Vote }> {
   const voteDate = getVoteDateString();
+  const nameClean = sanitizeName(voterName);
+  if (!nameClean) {
+    throw new VoteError("Your name is required to vote.", 400);
+  }
 
   return runExclusive(async () => {
     const data = await readData();
@@ -68,6 +83,7 @@ export async function castVote(
       submissionId: submission.id,
       manufacturerId: submission.manufacturerId,
       voterId,
+      voterName: nameClean,
       voteDate,
       createdAt: new Date().toISOString(),
     };
@@ -77,7 +93,11 @@ export async function castVote(
     await writeData(data);
 
     return {
-      submission: toSubmissionPublic(submission, manufacturer.name),
+      submission: toSubmissionPublic(
+        submission,
+        manufacturer.name,
+        getVoterNames(data.votes, submission.id)
+      ),
       vote,
     };
   });

@@ -16,6 +16,19 @@ export function LyricBuilder() {
   const [votingId, setVotingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [votePromptId, setVotePromptId] = useState<string | null>(null);
+  const [voterName, setVoterName] = useState("");
+  const [voteError, setVoteError] = useState<string | null>(null);
+  const [expandedVotersId, setExpandedVotersId] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("wyd-voter-name");
+      if (saved) setVoterName(saved);
+    } catch {
+      // ignore unavailable storage
+    }
+  }, []);
 
   useEffect(() => {
     let ignore = false;
@@ -89,17 +102,36 @@ export function LyricBuilder() {
     }
   }
 
-  async function handleVote(submission: SubmissionPublic) {
+  function openVotePrompt(submission: SubmissionPublic) {
     if (votedManufacturerIds.has(submission.manufacturerId)) return;
+    setVoteError(null);
+    setVotePromptId(submission.id);
+  }
 
-    setVotingId(submission.id);
-    setError(null);
+  function closeVotePrompt() {
+    setVotePromptId(null);
+    setVoteError(null);
+  }
+
+  async function confirmVote(e: React.FormEvent) {
+    e.preventDefault();
+    if (!votePromptId) return;
+
+    const trimmedName = voterName.trim();
+    if (!trimmedName) {
+      setVoteError("Please enter your name to vote.");
+      return;
+    }
+
+    const submissionId = votePromptId;
+    setVotingId(submissionId);
+    setVoteError(null);
 
     try {
       const res = await fetch("/api/votes", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...voterHeaders() },
-        body: JSON.stringify({ submissionId: submission.id }),
+        body: JSON.stringify({ submissionId, name: trimmedName }),
       });
 
       const data = (await res.json()) as {
@@ -111,14 +143,23 @@ export function LyricBuilder() {
         throw new Error(data.error ?? "Could not vote");
       }
 
+      try {
+        localStorage.setItem("wyd-voter-name", trimmedName);
+      } catch {
+        // ignore unavailable storage
+      }
+
       if (data.submission) {
         setSubmissions((prev) =>
           prev.map((s) => (s.id === data.submission!.id ? data.submission! : s))
         );
-        setVotedManufacturerIds((prev) => new Set(prev).add(submission.manufacturerId));
+        setVotedManufacturerIds((prev) =>
+          new Set(prev).add(data.submission!.manufacturerId)
+        );
       }
+      setVotePromptId(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not vote");
+      setVoteError(err instanceof Error ? err.message : "Could not vote");
     } finally {
       setVotingId(null);
     }
@@ -146,7 +187,7 @@ export function LyricBuilder() {
           <span className="wrap-break-word font-semibold text-caramel">
             {vehicle.trim() || "___"}
           </span>{" "}
-          and you{" "}
+          and{" "}
           <span className="wrap-break-word font-semibold text-caramel">
             {feeling.trim() || "___"}
           </span>
@@ -196,7 +237,7 @@ export function LyricBuilder() {
             id="feeling"
             value={feeling}
             onChange={(e) => setFeeling(e.target.value)}
-            placeholder="feel something heavy"
+            placeholder="you feel something heavy"
             maxLength={80}
             required
             enterKeyHint="done"
@@ -251,13 +292,30 @@ export function LyricBuilder() {
                           <p className="mt-1 wrap-break-word text-sm leading-relaxed text-cream/90">
                             {s.text}
                           </p>
-                          <p className="mt-2 text-xs text-steam">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedVotersId((prev) => (prev === s.id ? null : s.id))
+                            }
+                            disabled={s.voteCount === 0}
+                            aria-expanded={expandedVotersId === s.id}
+                            className="mt-2 text-xs text-steam underline-offset-2 transition hover:text-caramel disabled:cursor-default disabled:no-underline disabled:hover:text-steam enabled:underline"
+                          >
                             {s.voteCount} {s.voteCount === 1 ? "vote" : "votes"}
-                          </p>
+                          </button>
+                          {expandedVotersId === s.id && s.voters.length > 0 && (
+                            <ul className="mt-2 space-y-1 border-l-2 border-poop-700/50 pl-3">
+                              {s.voters.map((voter, i) => (
+                                <li key={`${s.id}-voter-${i}`} className="text-xs text-cream/80">
+                                  {voter}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleVote(s)}
+                          onClick={() => openVotePrompt(s)}
                           disabled={votedForManufacturer || isVoting}
                           className="btn-vote w-full sm:w-auto"
                           aria-label={
@@ -285,6 +343,59 @@ export function LyricBuilder() {
         >
           {error}
         </p>
+      )}
+
+      {votePromptId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Enter your name to vote"
+          onClick={closeVotePrompt}
+        >
+          <form
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={confirmVote}
+            className="poop-card w-full max-w-sm space-y-4 p-5 sm:p-6"
+          >
+            <div>
+              <h3 className="text-base font-semibold text-cream">Vote</h3>
+              <p className="mt-1 text-sm text-steam">Enter your name to cast your vote.</p>
+            </div>
+            <input
+              autoFocus
+              value={voterName}
+              onChange={(e) => setVoterName(e.target.value)}
+              placeholder="Your name"
+              maxLength={60}
+              required
+              autoComplete="name"
+              enterKeyHint="done"
+              className="field-input"
+            />
+            {voteError && (
+              <p className="text-sm leading-relaxed text-red-400" role="alert">
+                {voteError}
+              </p>
+            )}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={closeVotePrompt}
+                className="btn-vote flex-1"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={votingId === votePromptId}
+                className="btn-primary flex-1"
+              >
+                {votingId === votePromptId ? "Voting..." : "Vote"}
+              </button>
+            </div>
+          </form>
+        </div>
       )}
     </div>
   );

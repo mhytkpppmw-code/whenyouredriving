@@ -25,8 +25,20 @@ export async function POST(request: Request) {
       );
     }
 
+    const name =
+      typeof (body as { name?: string }).name === "string"
+        ? (body as { name: string }).name
+        : "";
+
+    if (!name.trim()) {
+      return NextResponse.json(
+        { error: "Your name is required to vote." },
+        { status: 400 }
+      );
+    }
+
     const voterId = resolveVoterId(request);
-    const result = await castVote(submissionId, voterId);
+    const result = await castVote(submissionId, voterId, name);
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
     if (error instanceof VoteError) {

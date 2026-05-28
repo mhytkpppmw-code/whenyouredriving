@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -7,20 +7,10 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
   title: "When You're Driving",
   description:
-    "Stay focused on the road. When You're Driving helps you drive safely and let others know you're behind the wheel.",
-  openGraph: {
-    title: "When You're Driving",
-    description: "Drive focused. Arrive safe.",
-    type: "website",
-  },
+    "Fill in the blanks: When you're driving in your ___ and you ___, diarrhea, ðŸ’¨ðŸ’¨, diarrhea.",
 };
 
 export default function RootLayout({
@@ -30,9 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
-      >
+      <body className={`${geistSans.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

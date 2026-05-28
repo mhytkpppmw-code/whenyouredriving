@@ -119,7 +119,7 @@ export function LyricBuilder() {
     <div className="safe-pb mx-auto w-full max-w-2xl space-y-8 px-4 py-8 sm:space-y-10 sm:px-6 sm:py-12">
       <header className="text-center">
         <div className="mb-3 text-4xl drop-shadow-sm" aria-hidden>
-          💩💨
+          🚗💨
         </div>
         <h1 className="text-balance text-2xl font-bold tracking-tight text-cream sm:text-4xl">
           Diarrhea.

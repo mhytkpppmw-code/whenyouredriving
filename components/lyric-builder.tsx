@@ -5,6 +5,18 @@ import { voterHeaders } from "@/lib/client-voter";
 import { groupSubmissionsByManufacturer } from "@/lib/lyric";
 import type { SubmissionPublic } from "@/lib/types";
 
+function formatTimestamp(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function LyricBuilder() {
   const [name, setName] = useState("");
   const [vehicle, setVehicle] = useState("");
@@ -288,7 +300,16 @@ export function LyricBuilder() {
                         className="poop-card-inset flex flex-col gap-3 p-4 sm:flex-row sm:items-start"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-caramel">{s.submitterName}</p>
+                          <div className="flex flex-wrap items-baseline gap-x-2">
+                            <p className="text-sm font-medium text-caramel">{s.submitterName}</p>
+                            <time
+                              dateTime={s.createdAt}
+                              className="text-xs text-steam"
+                              title={new Date(s.createdAt).toLocaleString()}
+                            >
+                              {formatTimestamp(s.createdAt)}
+                            </time>
+                          </div>
                           <p className="mt-1 wrap-break-word text-sm leading-relaxed text-cream/90">
                             {s.text}
                           </p>

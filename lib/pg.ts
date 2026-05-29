@@ -11,6 +11,37 @@ export function usePostgres(): boolean {
   return Boolean(process.env.DATABASE_URL);
 }
 
+/** True when running in a production deployment (Vercel or a prod build). */
+export function isProduction(): boolean {
+  return process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
+}
+
+export const DATABASE_NOT_CONFIGURED_MESSAGE =
+  "The database isn't configured, so submissions and voting are unavailable. Please try again later.";
+
+/**
+ * Raised when the app runs in production without a configured database. We
+ * refuse to silently fall back to the ephemeral local JSON file there, since
+ * that data would be lost between deployments and cold starts.
+ */
+export class StorageNotConfiguredError extends Error {
+  readonly status = 503;
+  constructor(message: string = DATABASE_NOT_CONFIGURED_MESSAGE) {
+    super(message);
+    this.name = "StorageNotConfiguredError";
+  }
+}
+
+/**
+ * Guard the file-storage fallback. In production a missing DATABASE_URL is a
+ * misconfiguration we surface to the user rather than silently degrading.
+ */
+export function assertStorageConfigured(): void {
+  if (!usePostgres() && isProduction()) {
+    throw new StorageNotConfiguredError();
+  }
+}
+
 let sqlClient: NeonQueryFunction<false, false> | null = null;
 
 function getSql(): NeonQueryFunction<false, false> {

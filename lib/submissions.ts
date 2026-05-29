@@ -4,7 +4,12 @@ import { getOrCreateManufacturer, findManufacturerById } from "@/lib/manufacture
 import { formatLyric, sanitizeInput, sanitizeName } from "@/lib/lyric";
 import type { Submission, SubmissionPublic } from "@/lib/types";
 import { getVotedManufacturerIdsToday, getVoterNames, toSubmissionPublic } from "@/lib/voting";
-import { pgAddSubmission, pgListSubmissionsPublic, usePostgres } from "@/lib/pg";
+import {
+  assertStorageConfigured,
+  pgAddSubmission,
+  pgListSubmissionsPublic,
+  usePostgres,
+} from "@/lib/pg";
 import { getVoteDateString } from "@/lib/voter";
 
 const SEED_ROWS = [
@@ -56,6 +61,7 @@ export async function listSubmissionsPublic(voterId?: string): Promise<{
     return pgListSubmissionsPublic(voterId);
   }
 
+  assertStorageConfigured();
   await ensureSeeds();
   const data = await readData();
   const voteDate = getVoteDateString();
@@ -88,6 +94,7 @@ export async function addSubmission(
     return pgAddSubmission(submitterName, manufacturerName, feeling, voterId);
   }
 
+  assertStorageConfigured();
   const nameClean = sanitizeName(submitterName);
   if (!nameClean) {
     throw new Error("Your name is required.");

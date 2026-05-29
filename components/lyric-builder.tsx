@@ -48,18 +48,21 @@ export function LyricBuilder() {
     async function loadSubmissions() {
       try {
         const res = await fetch("/api/submissions", { headers: voterHeaders() });
-        if (!res.ok) throw new Error("Failed to load");
-        const data = (await res.json()) as {
-          submissions: SubmissionPublic[];
-          votedManufacturerIds: string[];
+        const data = (await res.json().catch(() => ({}))) as {
+          submissions?: SubmissionPublic[];
+          votedManufacturerIds?: string[];
+          error?: string;
         };
+        if (!res.ok) {
+          throw new Error(data.error ?? "Could not load submissions.");
+        }
         if (ignore) return;
-        setSubmissions(data.submissions);
-        setVotedManufacturerIds(new Set(data.votedManufacturerIds));
+        setSubmissions(data.submissions ?? []);
+        setVotedManufacturerIds(new Set(data.votedManufacturerIds ?? []));
         setError(null);
-      } catch {
+      } catch (err) {
         if (!ignore) {
-          setError("Could not load submissions.");
+          setError(err instanceof Error ? err.message : "Could not load submissions.");
         }
       } finally {
         if (!ignore) {

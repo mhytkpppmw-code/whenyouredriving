@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sanitizeInput, sanitizeName } from "@/lib/lyric";
+import { StorageNotConfiguredError } from "@/lib/pg";
 import { addSubmission, listSubmissionsPublic } from "@/lib/submissions";
 import { resolveVoterId } from "@/lib/voter";
 
@@ -11,6 +12,9 @@ export async function GET(request: Request) {
     const { submissions, votedManufacturerIds } = await listSubmissionsPublic(voterId);
     return NextResponse.json({ submissions, votedManufacturerIds });
   } catch (error) {
+    if (error instanceof StorageNotConfiguredError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("GET /api/submissions:", error);
     return NextResponse.json(
       { error: "Failed to load submissions" },
@@ -64,6 +68,9 @@ export async function POST(request: Request) {
     const submission = await addSubmission(name, vehicle, feeling, voterId);
     return NextResponse.json({ submission }, { status: 201 });
   } catch (error) {
+    if (error instanceof StorageNotConfiguredError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error("POST /api/submissions:", error);
     const message = error instanceof Error ? error.message : "Failed to save submission";
     return NextResponse.json({ error: message }, { status: 500 });

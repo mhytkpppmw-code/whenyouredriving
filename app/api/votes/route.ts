@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { StorageNotConfiguredError } from "@/lib/pg";
 import { ALREADY_VOTED_MESSAGE, VoteError, castVote } from "@/lib/voting";
 import { resolveVoterId } from "@/lib/voter";
 
@@ -51,6 +52,9 @@ export async function POST(request: Request) {
     const result = await castVote(submissionId, voterId, name);
     return NextResponse.json(result, { status: 201 });
   } catch (error) {
+    if (error instanceof StorageNotConfiguredError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     if (error instanceof VoteError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }

@@ -8,6 +8,7 @@ import {
   assertStorageConfigured,
   isPostgresEnabled,
   pgAddSubmission,
+  pgDeleteSubmission,
   pgListSubmissionsPublic,
 } from "@/lib/pg";
 import { getVoteDateString } from "@/lib/voter";
@@ -122,5 +123,24 @@ export async function addSubmission(
     data.submissions.unshift(entry);
     await writeData(data);
     return toSubmissionPublic(entry, manufacturer.name);
+  });
+}
+
+export async function deleteSubmission(submissionId: string): Promise<boolean> {
+  if (isPostgresEnabled()) {
+    return pgDeleteSubmission(submissionId);
+  }
+
+  assertStorageConfigured();
+  return runExclusive(async () => {
+    const data = await readData();
+    const before = data.submissions.length;
+    data.submissions = data.submissions.filter((s) => s.id !== submissionId);
+    if (data.submissions.length === before) {
+      return false;
+    }
+    data.votes = data.votes.filter((v) => v.submissionId !== submissionId);
+    await writeData(data);
+    return true;
   });
 }

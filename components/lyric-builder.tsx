@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { voterHeaders } from "@/lib/client-voter";
 import { groupSubmissionsByManufacturer } from "@/lib/lyric";
 import type { SubmissionPublic } from "@/lib/types";
@@ -40,6 +40,20 @@ export function LyricBuilder() {
   const [voteError, setVoteError] = useState<string | null>(null);
   const [expandedVotersId, setExpandedVotersId] = useState<string | null>(null);
 
+  const [toots, setToots] = useState<number[]>([]);
+  const tootSeq = useRef(0);
+
+  const [adminPromptOpen, setAdminPromptOpen] = useState(false);
+  const [adminCodeInput, setAdminCodeInput] = useState("");
+  const [adminError, setAdminError] = useState<string | null>(null);
+  const [adminVerifying, setAdminVerifying] = useState(false);
+  const [deleteMode, setDeleteMode] = useState(false);
+  // Validated code held only in memory for the next single deletion.
+  const adminCodeRef = useRef("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   useEffect(() => {
     let ignore = false;
 
@@ -75,6 +89,96 @@ export function LyricBuilder() {
       ignore = true;
     };
   }, []);
+
+  useEffect(() => {
+    function onAdminTrigger() {
+      // Clicking "makers" again while in delete mode (and nothing deleted yet)
+      // simply backs out, so the moderator doesn't have to refresh.
+      if (deleteMode) {
+        adminCodeRef.current = "";
+        setDeleteMode(false);
+        setConfirmDeleteId(null);
+        setDeleteError(null);
+        return;
+      }
+      setAdminError(null);
+      setAdminCodeInput("");
+      setAdminPromptOpen(true);
+    }
+    window.addEventListener("wyd:admin", onAdminTrigger);
+    return () => window.removeEventListener("wyd:admin", onAdminTrigger);
+  }, [deleteMode]);
+
+  function toot() {
+    const id = (tootSeq.current += 1);
+    setToots((prev) => [...prev, id]);
+  }
+
+  function exitDeleteMode() {
+    adminCodeRef.current = "";
+    setDeleteMode(false);
+    setConfirmDeleteId(null);
+  }
+
+  async function submitAdminCode(e: React.FormEvent) {
+    e.preventDefault();
+    const code = adminCodeInput;
+    if (!code.trim()) {
+      setAdminError("Enter the code.");
+      return;
+    }
+    setAdminVerifying(true);
+    setAdminError(null);
+    try {
+      const res = await fetch("/api/admin/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+      };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error ?? "Incorrect code.");
+      }
+      adminCodeRef.current = code;
+      setDeleteMode(true);
+      setDeleteError(null);
+      setAdminPromptOpen(false);
+      setAdminCodeInput("");
+    } catch (err) {
+      setAdminError(err instanceof Error ? err.message : "Incorrect code.");
+    } finally {
+      setAdminVerifying(false);
+    }
+  }
+
+  async function confirmDelete() {
+    const id = confirmDeleteId;
+    if (!id) return;
+    setDeletingId(id);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/submissions?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: { "X-Admin-Code": adminCodeRef.current },
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error ?? "Could not delete.");
+      }
+      setSubmissions((prev) => prev.filter((s) => s.id !== id));
+      // Single-use: a successful deletion ends delete mode, so the moderator
+      // must re-enter the code to remove anything else.
+      exitDeleteMode();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Could not delete.");
+      setConfirmDeleteId(null);
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -183,8 +287,25 @@ export function LyricBuilder() {
   return (
     <div className="safe-pb mx-auto w-full max-w-2xl space-y-8 px-4 py-8 sm:space-y-10 sm:px-6 sm:py-12">
       <header className="text-center">
-        <div className="mb-3 text-4xl drop-shadow-xs" aria-hidden>
-          🚗💨
+        <div className="relative mb-3 inline-block text-4xl drop-shadow-xs">
+          <span aria-hidden>🚗</span>
+          <button
+            type="button"
+            onClick={toot}
+            aria-label="Toot!"
+            className="cursor-pointer align-baseline transition active:scale-90"
+          >
+            💨
+          </button>
+          {toots.map((id) => (
+            <span
+              key={id}
+              onAnimationEnd={() => setToots((prev) => prev.filter((t) => t !== id))}
+              className="toot-pop pointer-events-none absolute -top-2 left-1/2 select-none whitespace-nowrap text-lg font-extrabold tracking-wide text-caramel"
+            >
+              TOOT TOOT!
+            </span>
+          ))}
         </div>
         <h1 className="text-balance text-2xl font-bold tracking-tight text-cream sm:text-4xl">
           Diarrhea.
@@ -271,6 +392,29 @@ export function LyricBuilder() {
         <h2 className="mb-4 text-center text-lg font-semibold text-cream">
           Submitted rhymes
         </h2>
+        {deleteMode && (
+          <div className="mb-4 flex flex-col gap-2 rounded-xl bg-signal-amber/15 px-3 py-2 text-center text-xs leading-relaxed text-signal-amber ring-1 ring-signal-amber/40 sm:flex-row sm:items-center sm:justify-between sm:text-left">
+            <span>
+              Moderator mode: pick one rhyme to delete. The code is required
+              again after each deletion.
+            </span>
+            <button
+              type="button"
+              onClick={exitDeleteMode}
+              className="shrink-0 font-semibold underline underline-offset-2 transition hover:text-caramel"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+        {deleteError && (
+          <p
+            className="mb-4 rounded-lg bg-red-950/50 px-3 py-2 text-center text-sm leading-relaxed text-red-400 ring-1 ring-red-900/50"
+            role="alert"
+          >
+            {deleteError}
+          </p>
+        )}
         {loading ? (
           <p className="text-center text-sm text-steam">Loading...</p>
         ) : submissions.length === 0 ? (
@@ -335,19 +479,35 @@ export function LyricBuilder() {
                             </ul>
                           )}
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => openVotePrompt(s)}
-                          disabled={votedForManufacturer || isVoting}
-                          className="btn-vote w-full sm:w-auto"
-                          aria-label={
-                            votedForManufacturer
-                              ? `Already voted for ${group.manufacturerName} ride today`
-                              : `Vote for this ${group.manufacturerName} rhyme`
-                          }
-                        >
-                          {isVoting ? "..." : votedForManufacturer ? "Voted" : "Vote"}
-                        </button>
+                        <div className="flex w-full gap-2 sm:w-auto sm:flex-col">
+                          <button
+                            type="button"
+                            onClick={() => openVotePrompt(s)}
+                            disabled={votedForManufacturer || isVoting}
+                            className="btn-vote w-full sm:w-auto"
+                            aria-label={
+                              votedForManufacturer
+                                ? `Already voted for ${group.manufacturerName} ride today`
+                                : `Vote for this ${group.manufacturerName} rhyme`
+                            }
+                          >
+                            {isVoting ? "..." : votedForManufacturer ? "Voted" : "Vote"}
+                          </button>
+                          {deleteMode && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDeleteError(null);
+                                setConfirmDeleteId(s.id);
+                              }}
+                              disabled={deletingId === s.id}
+                              className="min-h-[44px] w-full shrink-0 rounded-xl border-2 border-red-900/60 bg-red-950/40 px-4 py-2.5 text-sm font-semibold text-red-300 shadow-mound-sm transition active:scale-[0.98] hover:border-red-700 hover:bg-red-900/50 focus:outline-hidden focus:ring-2 focus:ring-red-700/40 disabled:opacity-50 sm:w-auto"
+                              aria-label={`Delete this ${group.manufacturerName} rhyme`}
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
                       </li>
                     );
                   })}
@@ -417,6 +577,96 @@ export function LyricBuilder() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {adminPromptOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Enter moderator code"
+          onClick={() => setAdminPromptOpen(false)}
+        >
+          <form
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={submitAdminCode}
+            className="poop-card w-full max-w-sm space-y-4 p-5 sm:p-6"
+          >
+            <div>
+              <h3 className="text-base font-semibold text-cream">Moderator access</h3>
+              <p className="mt-1 text-sm text-steam">
+                Enter the code to delete a rhyme.
+              </p>
+            </div>
+            <input
+              autoFocus
+              type="password"
+              value={adminCodeInput}
+              onChange={(e) => setAdminCodeInput(e.target.value)}
+              placeholder="Code"
+              autoComplete="off"
+              enterKeyHint="done"
+              className="field-input"
+            />
+            {adminError && (
+              <p className="text-sm leading-relaxed text-red-400" role="alert">
+                {adminError}
+              </p>
+            )}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setAdminPromptOpen(false)}
+                className="btn-vote flex-1"
+              >
+                Cancel
+              </button>
+              <button type="submit" disabled={adminVerifying} className="btn-primary flex-1">
+                {adminVerifying ? "Checking..." : "Unlock"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {confirmDeleteId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Confirm delete"
+          onClick={() => setConfirmDeleteId(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="poop-card w-full max-w-sm space-y-4 p-5 sm:p-6"
+          >
+            <div>
+              <h3 className="text-base font-semibold text-cream">Delete this rhyme?</h3>
+              <p className="mt-1 text-sm text-steam">This can&apos;t be undone.</p>
+            </div>
+            <p className="wrap-break-word rounded-lg bg-poop-950/60 px-3 py-2 text-sm leading-relaxed text-cream/90 ring-1 ring-poop-800/40">
+              {submissions.find((s) => s.id === confirmDeleteId)?.text}
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteId(null)}
+                className="btn-vote flex-1"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deletingId === confirmDeleteId}
+                className="btn-primary flex-1"
+              >
+                {deletingId === confirmDeleteId ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

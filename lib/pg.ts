@@ -226,6 +226,16 @@ export async function pgAddSubmission(
   };
 }
 
+export async function pgDeleteSubmission(id: string): Promise<boolean> {
+  await ensureSchema();
+  const sql = getSql();
+  // Votes reference submissions with ON DELETE CASCADE, so they go too.
+  const rows = (await sql`
+    DELETE FROM submissions WHERE id = ${id} RETURNING id
+  `) as { id: string }[];
+  return rows.length > 0;
+}
+
 export async function pgCastVote(
   submissionId: string,
   voterId: string,

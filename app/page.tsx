@@ -1,4 +1,5 @@
 import { LyricBuilder } from "@/components/lyric-builder";
+import { MakersButton } from "@/components/makers-button";
 
 export default function Home() {
   return (
@@ -16,7 +17,7 @@ export default function Home() {
       </main>
 
       <footer className="safe-pb relative z-10 border-t-2 border-poop-700/50 px-4 py-6 text-center text-xs text-steam">
-        From the makers of Cat Mash.
+        From the <MakersButton /> of Cat Mash.
       </footer>
     </div>
   );

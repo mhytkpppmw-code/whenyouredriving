@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
+import { isAdminCodeConfigured, verifyAdminCode } from "@/lib/admin";
 import { sanitizeInput, sanitizeName } from "@/lib/lyric";
 import { StorageNotConfiguredError } from "@/lib/pg";
-import { addSubmission, listSubmissionsPublic } from "@/lib/submissions";
+import {
+  addSubmission,
+  deleteSubmission,
+  listSubmissionsPublic,
+} from "@/lib/submissions";
 import { resolveVoterId } from "@/lib/voter";
 
 export const runtime = "nodejs";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function GET(request: Request) {
   try {
@@ -74,5 +82,41 @@ export async function POST(request: Request) {
     console.error("POST /api/submissions:", error);
     const message = error instanceof Error ? error.message : "Failed to save submission";
     return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    if (!isAdminCodeConfigured()) {
+      return NextResponse.json(
+        { error: "Deletion is not enabled." },
+        { status: 503 }
+      );
+    }
+
+    const code = request.headers.get("x-admin-code") ?? "";
+    if (!verifyAdminCode(code)) {
+      return NextResponse.json({ error: "Incorrect code." }, { status: 403 });
+    }
+
+    const id = (new URL(request.url).searchParams.get("id") ?? "").trim();
+    if (!UUID_RE.test(id)) {
+      return NextResponse.json({ error: "Invalid submission id." }, { status: 400 });
+    }
+
+    const deleted = await deleteSubmission(id);
+    if (!deleted) {
+      return NextResponse.json({ error: "Submission not found." }, { status: 404 });
+    }
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    if (error instanceof StorageNotConfiguredError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    console.error("DELETE /api/submissions:", error);
+    return NextResponse.json(
+      { error: "Failed to delete submission" },
+      { status: 500 }
+    );
   }
 }

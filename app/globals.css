@@ -100,6 +100,25 @@
   @apply rounded-2xl border-2 border-poop-700/50 bg-poop-950/60 shadow-mound-sm;
 }
 
+@keyframes toot-float {
+  0% {
+    transform: translate(-50%, 0) scale(0.6) rotate(-6deg);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -8px) scale(1.1) rotate(3deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -64px) scale(1) rotate(-4deg);
+    opacity: 0;
+  }
+}
+
+@utility toot-pop {
+  animation: toot-float 0.9s ease-out forwards;
+}
+
 @layer utilities {
   :root {
     --background: #1a1209;

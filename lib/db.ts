@@ -1,4 +1,5 @@
 import { promises as fs } from "fs";
+import os from "os";
 import path from "path";
 import type { AppData } from "@/lib/types";
 
@@ -12,11 +13,24 @@ function isServerless(): boolean {
   return Boolean(process.env.VERCEL);
 }
 
+/**
+ * Local data lives OUTSIDE the project/OneDrive folder. OneDrive locks,
+ * reverts, and re-encodes synced files, which previously caused submitted
+ * rhymes to disappear. Using a non-synced OS location keeps writes stable.
+ */
+function getLocalDataDir(): string {
+  const base =
+    process.env.WHENYOUREDRIVING_DATA_DIR ||
+    process.env.LOCALAPPDATA ||
+    os.tmpdir();
+  return path.join(base, "whenyouredriving");
+}
+
 function getDataPath(): string {
   if (isServerless()) {
     return path.join("/tmp", "whenyouredriving-app.json");
   }
-  return path.join(process.cwd(), "data", "app.json");
+  return path.join(getLocalDataDir(), "app.json");
 }
 
 function getLegacyPath(): string {
@@ -105,8 +119,9 @@ async function ensureStoreFile(): Promise<void> {
 export async function readData(): Promise<AppData> {
   const dataPath = getDataPath();
 
+  await ensureStoreFile();
+
   try {
-    await ensureStoreFile();
     const raw = await fs.readFile(dataPath, "utf8");
     const parsed = JSON.parse(raw) as AppData;
     if (
@@ -118,15 +133,17 @@ export async function readData(): Promise<AppData> {
       memoryStore = parsed;
       return parsed;
     }
+    throw new Error("Data file has an unexpected shape");
   } catch (error) {
     console.error("readData failed:", error);
+    // The store file exists but could not be read/parsed (e.g. a transient
+    // lock or a momentary sync race). Never fall back to empty data here:
+    // doing so would let the next write clobber existing rhymes/votes.
+    if (memoryStore) {
+      return memoryStore;
+    }
+    throw error;
   }
-
-  if (!memoryStore) {
-    const migrated = await migrateLegacyIfNeeded();
-    memoryStore = migrated ?? { ...EMPTY_DATA };
-  }
-  return memoryStore;
 }
 
 export async function writeData(data: AppData): Promise<void> {

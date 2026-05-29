@@ -177,7 +177,7 @@ export function LyricBuilder() {
           Diarrhea.
         </h1>
         <p className="mt-2 text-sm text-steam sm:text-base">
-          Fill in the blanks. Submit your rhyme.
+          Submit your rhyme. Vote for your favorite.
         </p>
       </header>
 

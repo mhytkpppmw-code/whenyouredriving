@@ -2,11 +2,12 @@ import { randomUUID } from "crypto";
 import { readData, runExclusive, writeData } from "@/lib/db";
 import { findManufacturerById } from "@/lib/manufacturers";
 import { sanitizeName } from "@/lib/lyric";
+import { pgCastVote, usePostgres } from "@/lib/pg";
 import type { Submission, SubmissionPublic, Vote } from "@/lib/types";
 import { getVoteDateString } from "@/lib/voter";
+import { ALREADY_VOTED_MESSAGE, VoteError } from "@/lib/vote-errors";
 
-export const ALREADY_VOTED_MESSAGE =
-  "You already voted for this manufacturer today. Try again tomorrow.";
+export { ALREADY_VOTED_MESSAGE, VoteError };
 
 export function getVoterNames(votes: Vote[], submissionId: string): string[] {
   return votes
@@ -48,7 +49,11 @@ export async function castVote(
   submissionId: string,
   voterId: string,
   voterName: string
-): Promise<{ submission: SubmissionPublic; vote: Vote }> {
+): Promise<{ submission: SubmissionPublic; vote?: Vote }> {
+  if (usePostgres()) {
+    return pgCastVote(submissionId, voterId, voterName);
+  }
+
   const voteDate = getVoteDateString();
   const nameClean = sanitizeName(voterName);
   if (!nameClean) {
@@ -101,14 +106,4 @@ export async function castVote(
       vote,
     };
   });
-}
-
-export class VoteError extends Error {
-  constructor(
-    message: string,
-    public status: number
-  ) {
-    super(message);
-    this.name = "VoteError";
-  }
 }

@@ -4,6 +4,9 @@ import { resolveVoterId } from "@/lib/voter";
 
 export const runtime = "nodejs";
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function POST(request: Request) {
   try {
     let body: unknown;
@@ -21,6 +24,13 @@ export async function POST(request: Request) {
     if (!submissionId) {
       return NextResponse.json(
         { error: "submissionId is required." },
+        { status: 400 }
+      );
+    }
+
+    if (!UUID_RE.test(submissionId)) {
+      return NextResponse.json(
+        { error: "Invalid submission id." },
         { status: 400 }
       );
     }

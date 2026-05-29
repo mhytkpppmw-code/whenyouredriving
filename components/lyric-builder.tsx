@@ -29,18 +29,16 @@ export function LyricBuilder() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [votePromptId, setVotePromptId] = useState<string | null>(null);
-  const [voterName, setVoterName] = useState("");
+  const [voterName, setVoterName] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      return localStorage.getItem("wyd-voter-name") ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [voteError, setVoteError] = useState<string | null>(null);
   const [expandedVotersId, setExpandedVotersId] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("wyd-voter-name");
-      if (saved) setVoterName(saved);
-    } catch {
-      // ignore unavailable storage
-    }
-  }, []);
 
   useEffect(() => {
     let ignore = false;

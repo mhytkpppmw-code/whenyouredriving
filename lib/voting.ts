@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { readData, runExclusive, writeData } from "@/lib/db";
 import { findManufacturerById } from "@/lib/manufacturers";
 import { sanitizeName } from "@/lib/lyric";
-import { assertStorageConfigured, pgCastVote, usePostgres } from "@/lib/pg";
+import { assertStorageConfigured, isPostgresEnabled, pgCastVote } from "@/lib/pg";
 import type { Submission, SubmissionPublic, Vote } from "@/lib/types";
 import { getVoteDateString } from "@/lib/voter";
 import { ALREADY_VOTED_MESSAGE, VoteError } from "@/lib/vote-errors";
@@ -50,7 +50,7 @@ export async function castVote(
   voterId: string,
   voterName: string
 ): Promise<{ submission: SubmissionPublic; vote?: Vote }> {
-  if (usePostgres()) {
+  if (isPostgresEnabled()) {
     return pgCastVote(submissionId, voterId, voterName);
   }
 

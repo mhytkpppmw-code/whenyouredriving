@@ -6,9 +6,9 @@ import type { Submission, SubmissionPublic } from "@/lib/types";
 import { getVotedManufacturerIdsToday, getVoterNames, toSubmissionPublic } from "@/lib/voting";
 import {
   assertStorageConfigured,
+  isPostgresEnabled,
   pgAddSubmission,
   pgListSubmissionsPublic,
-  usePostgres,
 } from "@/lib/pg";
 import { getVoteDateString } from "@/lib/voter";
 
@@ -57,7 +57,7 @@ export async function listSubmissionsPublic(voterId?: string): Promise<{
   submissions: SubmissionPublic[];
   votedManufacturerIds: string[];
 }> {
-  if (usePostgres()) {
+  if (isPostgresEnabled()) {
     return pgListSubmissionsPublic(voterId);
   }
 
@@ -90,7 +90,7 @@ export async function addSubmission(
   feeling: string,
   voterId?: string
 ): Promise<SubmissionPublic> {
-  if (usePostgres()) {
+  if (isPostgresEnabled()) {
     return pgAddSubmission(submitterName, manufacturerName, feeling, voterId);
   }
 

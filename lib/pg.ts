@@ -7,7 +7,7 @@ import { ALREADY_VOTED_MESSAGE, VoteError } from "@/lib/vote-errors";
 import type { SubmissionPublic } from "@/lib/types";
 
 /** Use Postgres whenever a connection string is configured. */
-export function usePostgres(): boolean {
+export function isPostgresEnabled(): boolean {
   return Boolean(process.env.DATABASE_URL);
 }
 
@@ -37,7 +37,7 @@ export class StorageNotConfiguredError extends Error {
  * misconfiguration we surface to the user rather than silently degrading.
  */
 export function assertStorageConfigured(): void {
-  if (!usePostgres() && isProduction()) {
+  if (!isPostgresEnabled() && isProduction()) {
     throw new StorageNotConfiguredError();
   }
 }

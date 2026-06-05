@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { voterHeaders } from "@/lib/client-voter";
 import { groupSubmissionsByManufacturer } from "@/lib/lyric";
+import { RhymeMatchDisplay } from "@/components/rhyme-match-display";
+import { useRhymePreview } from "@/components/use-rhyme-preview";
+import { VoteCountDisplay } from "@/components/vote-count-display";
 import type { SubmissionPublic } from "@/lib/types";
 
 function formatTimestamp(iso: string): string {
@@ -39,6 +42,7 @@ export function LyricBuilder() {
   });
   const [voteError, setVoteError] = useState<string | null>(null);
   const [expandedVotersId, setExpandedVotersId] = useState<string | null>(null);
+  const rhymePreview = useRhymePreview(vehicle, feeling);
 
   const [toots, setToots] = useState<number[]>([]);
   const tootSeq = useRef(0);
@@ -377,6 +381,13 @@ export function LyricBuilder() {
             enterKeyHint="done"
             className="field-input"
           />
+          <div className="mt-3">
+            <RhymeMatchDisplay
+              match={rhymePreview.match}
+              manufacturerName={vehicle.trim()}
+              pending={rhymePreview.pending}
+            />
+          </div>
         </div>
 
         <button type="submit" disabled={submitting} className="btn-primary">
@@ -442,7 +453,7 @@ export function LyricBuilder() {
                     return (
                       <li
                         key={s.id}
-                        className="poop-card-inset flex flex-col gap-3 p-4 sm:flex-row sm:items-start"
+                        className="poop-card-inset flex flex-col gap-3 p-4"
                       >
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-baseline gap-x-2">
@@ -458,55 +469,52 @@ export function LyricBuilder() {
                           <p className="mt-1 wrap-break-word text-sm leading-relaxed text-cream/90">
                             {s.text}
                           </p>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setExpandedVotersId((prev) => (prev === s.id ? null : s.id))
-                            }
-                            disabled={s.voteCount === 0}
-                            aria-expanded={expandedVotersId === s.id}
-                            className="mt-2 text-xs text-steam underline-offset-2 transition hover:text-caramel disabled:cursor-default disabled:no-underline disabled:hover:text-steam enabled:underline"
-                          >
-                            {s.voteCount} {s.voteCount === 1 ? "vote" : "votes"}
-                          </button>
-                          {expandedVotersId === s.id && s.voters.length > 0 && (
-                            <ul className="mt-2 space-y-1 border-l-2 border-poop-700/50 pl-3">
-                              {s.voters.map((voter, i) => (
-                                <li key={`${s.id}-voter-${i}`} className="text-xs text-cream/80">
-                                  {voter}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
                         </div>
-                        <div className="flex w-full gap-2 sm:w-auto sm:flex-col">
-                          <button
-                            type="button"
-                            onClick={() => openVotePrompt(s)}
-                            disabled={votedForManufacturer || isVoting}
-                            className="btn-vote w-full sm:w-auto"
-                            aria-label={
-                              votedForManufacturer
-                                ? `Already voted for ${group.manufacturerName} ride today`
-                                : `Vote for this ${group.manufacturerName} rhyme`
-                            }
-                          >
-                            {isVoting ? "..." : votedForManufacturer ? "Voted" : "Vote"}
-                          </button>
-                          {deleteMode && (
+                        <div className="flex flex-col gap-3 border-t border-poop-700/40 pt-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="min-w-0">
+                            <RhymeMatchDisplay
+                              match={s.rhymeMatch}
+                              manufacturerName={s.manufacturerName}
+                            />
+                          </div>
+                          <div className="flex shrink-0 flex-wrap items-center gap-3 sm:justify-end">
+                            <VoteCountDisplay
+                              expanded={expandedVotersId === s.id}
+                              onClose={() => setExpandedVotersId(null)}
+                              onToggle={() =>
+                                setExpandedVotersId((prev) => (prev === s.id ? null : s.id))
+                              }
+                              voteCount={s.voteCount}
+                              voters={s.voters}
+                            />
                             <button
                               type="button"
-                              onClick={() => {
-                                setDeleteError(null);
-                                setConfirmDeleteId(s.id);
-                              }}
-                              disabled={deletingId === s.id}
-                              className="min-h-[44px] w-full shrink-0 rounded-xl border-2 border-red-900/60 bg-red-950/40 px-4 py-2.5 text-sm font-semibold text-red-300 shadow-mound-sm transition active:scale-[0.98] hover:border-red-700 hover:bg-red-900/50 focus:outline-hidden focus:ring-2 focus:ring-red-700/40 disabled:opacity-50 sm:w-auto"
-                              aria-label={`Delete this ${group.manufacturerName} rhyme`}
-                            >
-                              Delete
-                            </button>
-                          )}
+                              onClick={() => openVotePrompt(s)}
+                              disabled={votedForManufacturer || isVoting}
+                              className="btn-vote"
+                              aria-label={
+                                votedForManufacturer
+                                  ? `Already voted for ${group.manufacturerName} ride today`
+                                  : `Vote for this ${group.manufacturerName} rhyme`
+                              }
+                              >
+                                {isVoting ? "..." : votedForManufacturer ? "Voted" : "Vote"}
+                              </button>
+                            {deleteMode && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDeleteError(null);
+                                  setConfirmDeleteId(s.id);
+                                }}
+                                disabled={deletingId === s.id}
+                                className="min-h-[44px] shrink-0 rounded-xl border-2 border-red-900/60 bg-red-950/40 px-4 py-2.5 text-sm font-semibold text-red-300 shadow-mound-sm transition active:scale-[0.98] hover:border-red-700 hover:bg-red-900/50 focus:outline-hidden focus:ring-2 focus:ring-red-700/40 disabled:opacity-50"
+                                aria-label={`Delete this ${group.manufacturerName} rhyme`}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </li>
                     );

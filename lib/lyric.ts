@@ -20,7 +20,27 @@ export function sanitizeName(value: string): string {
 }
 
 export function formatLyric(manufacturerName: string, feeling: string): string {
-  return `When you're driving in your ${manufacturerName} and ${feeling}, diarrhea, 💨💨, diarrhea.`;
+  return `When you're driving in your ${manufacturerName} ${formatSubmittedRhymeHalf(feeling)}, diarrhea, 💨💨, diarrhea.`;
+}
+
+export function formatSubmittedRhymeHalf(feeling: string): string {
+  const cleaned = sanitizeInput(feeling);
+  return /^and\b/i.test(cleaned) ? cleaned : `and ${cleaned}`;
+}
+
+export function extractFeelingFromLyric(
+  lyric: string,
+  manufacturerName: string
+): string | null {
+  const prefix = `When you're driving in your ${manufacturerName} and `;
+  if (!lyric.startsWith(prefix)) return null;
+
+  const rest = lyric.slice(prefix.length);
+  const end = rest.indexOf(", diarrhea");
+  if (end < 0) return null;
+
+  const feeling = rest.slice(0, end).trim();
+  return feeling || null;
 }
 
 export function groupSubmissionsByManufacturer(

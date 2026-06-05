@@ -1,10 +1,16 @@
 import { randomUUID } from "crypto";
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
-import { formatLyric, sanitizeInput, sanitizeName } from "@/lib/lyric";
+import {
+  extractFeelingFromLyric,
+  formatLyric,
+  sanitizeInput,
+  sanitizeName,
+} from "@/lib/lyric";
 import { manufacturerKey, normalizeManufacturerName } from "@/lib/manufacturers";
+import { scoreRhymeMatch } from "@/lib/rhyme";
 import { getVoteDateString } from "@/lib/voter";
 import { ALREADY_VOTED_MESSAGE, VoteError } from "@/lib/vote-errors";
-import type { SubmissionPublic } from "@/lib/types";
+import type { RhymeMatch, SubmissionPublic } from "@/lib/types";
 
 /** Use Postgres whenever a connection string is configured. */
 export function isPostgresEnabled(): boolean {
@@ -117,16 +123,24 @@ function toIso(value: string | Date): string {
 }
 
 function rowToPublic(row: SubmissionRow): SubmissionPublic {
+  const rhymeMatch = scoreRowRhyme(row.text, row.manufacturer_name);
+
   return {
     id: row.id,
     manufacturerId: row.manufacturer_id,
     manufacturerName: row.manufacturer_name,
     submitterName: (row.submitter_name ?? "").trim() || "Anonymous",
     text: row.text,
+    rhymeMatch,
     voteCount: Number(row.vote_count) || 0,
     voters: (row.voters ?? []).map((v) => (v ?? "").trim() || "Anonymous"),
     createdAt: toIso(row.created_at),
   };
+}
+
+function scoreRowRhyme(text: string, manufacturerName: string): RhymeMatch | undefined {
+  const feeling = extractFeelingFromLyric(text, manufacturerName);
+  return feeling ? scoreRhymeMatch(manufacturerName, feeling) : undefined;
 }
 
 export async function pgListSubmissionsPublic(voterId?: string): Promise<{
@@ -220,6 +234,7 @@ export async function pgAddSubmission(
     manufacturerName: manufacturer.name,
     submitterName: nameClean,
     text: row.text,
+    rhymeMatch: scoreRhymeMatch(manufacturer.name, feelingClean),
     voteCount: 0,
     voters: [],
     createdAt: toIso(row.created_at),
@@ -295,6 +310,7 @@ export async function pgCastVote(
       manufacturerName: sub.manufacturer_name,
       submitterName: (row.submitter_name ?? "").trim() || "Anonymous",
       text: row.text,
+      rhymeMatch: scoreRowRhyme(row.text, sub.manufacturer_name),
       voteCount: Number(row.vote_count) || 0,
       voters: voterRows.map((v) => (v.voter_name ?? "").trim() || "Anonymous"),
       createdAt: toIso(row.created_at),

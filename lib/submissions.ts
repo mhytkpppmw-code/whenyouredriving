@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { readData, runExclusive, writeData } from "@/lib/db";
 import { getOrCreateManufacturer, findManufacturerById } from "@/lib/manufacturers";
 import { formatLyric, sanitizeInput, sanitizeName } from "@/lib/lyric";
+import { scoreRhymeMatch } from "@/lib/rhyme";
 import type { Submission, SubmissionPublic } from "@/lib/types";
 import { getVotedManufacturerIdsToday, getVoterNames, toSubmissionPublic } from "@/lib/voting";
 import {
@@ -45,6 +46,7 @@ async function ensureSeeds(): Promise<void> {
         id: randomUUID(),
         manufacturerId: manufacturer.id,
         text: formatLyric(manufacturer.name, row.feeling),
+        rhymeMatch: scoreRhymeMatch(manufacturer.name, row.feeling),
         submitterName: row.submitterName,
         voteCount: 0,
         createdAt: row.createdAt,
@@ -108,6 +110,7 @@ export async function addSubmission(
 
   const manufacturer = await getOrCreateManufacturer(manufacturerName);
   const text = formatLyric(manufacturer.name, feelingClean);
+  const rhymeMatch = scoreRhymeMatch(manufacturer.name, feelingClean);
 
   return runExclusive(async () => {
     const data = await readData();
@@ -115,6 +118,7 @@ export async function addSubmission(
       id: randomUUID(),
       manufacturerId: manufacturer.id,
       text,
+      rhymeMatch,
       submitterName: nameClean,
       voteCount: 0,
       createdAt: new Date().toISOString(),

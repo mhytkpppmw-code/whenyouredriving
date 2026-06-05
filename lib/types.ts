@@ -8,6 +8,7 @@ export type Submission = {
   id: string;
   manufacturerId: string;
   text: string;
+  rhymeMatch?: RhymeMatch;
   /** Required on new submissions; older records may omit. */
   submitterName?: string;
   voteCount: number;
@@ -32,6 +33,19 @@ export type AppData = {
   votes: Vote[];
 };
 
+export type RhymeMatch = {
+  algorithmVersion: number;
+  status: "scored" | "partial" | "unknown";
+  percent: number | null;
+  phraseRhymePercent: number | null;
+  flowPercent: number | null;
+  referencePhrase: string | null;
+  submittedPhrase: string | null;
+  referenceSyllables: number | null;
+  phraseSyllables: number | null;
+  unknownWords: string[];
+};
+
 /** API shape for the client */
 export type SubmissionPublic = {
   id: string;
@@ -39,6 +53,7 @@ export type SubmissionPublic = {
   manufacturerName: string;
   submitterName: string;
   text: string;
+  rhymeMatch?: RhymeMatch;
   voteCount: number;
   /** Names of people who voted for this submission. */
   voters: string[];

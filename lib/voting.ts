@@ -1,8 +1,9 @@
 import { randomUUID } from "crypto";
 import { readData, runExclusive, writeData } from "@/lib/db";
 import { findManufacturerById } from "@/lib/manufacturers";
-import { sanitizeName } from "@/lib/lyric";
+import { extractFeelingFromLyric, sanitizeName } from "@/lib/lyric";
 import { assertStorageConfigured, isPostgresEnabled, pgCastVote } from "@/lib/pg";
+import { isCurrentRhymeMatch, scoreRhymeMatch } from "@/lib/rhyme";
 import type { Submission, SubmissionPublic, Vote } from "@/lib/types";
 import { getVoteDateString } from "@/lib/voter";
 import { ALREADY_VOTED_MESSAGE, VoteError } from "@/lib/vote-errors";
@@ -21,12 +22,20 @@ export function toSubmissionPublic(
   manufacturerName: string,
   voters: string[] = []
 ): SubmissionPublic {
+  const fallbackFeeling = extractFeelingFromLyric(submission.text, manufacturerName);
+  const rhymeMatch = isCurrentRhymeMatch(submission.rhymeMatch)
+    ? submission.rhymeMatch
+    : fallbackFeeling
+      ? scoreRhymeMatch(manufacturerName, fallbackFeeling)
+      : undefined;
+
   return {
     id: submission.id,
     manufacturerId: submission.manufacturerId,
     manufacturerName,
     submitterName: submission.submitterName?.trim() || "Anonymous",
     text: submission.text,
+    rhymeMatch,
     voteCount: submission.voteCount,
     voters,
     createdAt: submission.createdAt,

@@ -51,6 +51,7 @@ export function runExclusive<T>(fn: () => Promise<T>): Promise<T> {
 
 async function migrateLegacyIfNeeded(): Promise<AppData | null> {
   try {
+    const { scoreRhymeMatch } = await import("@/lib/rhyme");
     const raw = await fs.readFile(getLegacyPath(), "utf8");
     const legacy = JSON.parse(raw) as Array<{
       id: string;
@@ -85,6 +86,7 @@ async function migrateLegacyIfNeeded(): Promise<AppData | null> {
         id: row.id ?? randomUUID(),
         manufacturerId: manufacturer.id,
         text: `When you're driving in your ${name} and you ${feeling}, diarrhea, 💨💨, diarrhea.`,
+        rhymeMatch: scoreRhymeMatch(name, `you ${feeling}`),
         submitterName: "Anonymous",
         voteCount: row.voteCount ?? 0,
         createdAt: row.createdAt ?? new Date().toISOString(),

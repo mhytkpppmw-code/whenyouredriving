@@ -89,7 +89,7 @@
 }
 
 @utility btn-vote {
-  @apply min-h-[44px] min-w-18 shrink-0 rounded-xl border-2 border-poop-700 bg-poop-800 px-4 py-2.5 text-sm font-semibold text-caramel shadow-mound-sm transition active:scale-[0.98] focus:outline-hidden focus:ring-2 focus:ring-caramel/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 hover:border-poop-600 hover:bg-poop-700 disabled:hover:border-poop-700 disabled:hover:bg-poop-800;
+  @apply shrink-0 rounded-lg border border-poop-700 bg-poop-800 px-3 py-1.5 text-sm font-semibold text-caramel shadow-mound-sm transition active:scale-[0.98] focus:outline-hidden focus:ring-2 focus:ring-caramel/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 hover:border-poop-600 hover:bg-poop-700 disabled:hover:border-poop-700 disabled:hover:bg-poop-800;
 }
 
 @utility poop-card {
